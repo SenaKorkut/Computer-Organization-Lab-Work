@@ -1,0 +1,184 @@
+.data
+	prompt: .asciiz "Enter a string \n"
+	input: .space 20
+	input2: .space 20
+.text
+
+#Ask the user for input
+		la $a0, prompt    
+   		li $v0, 4
+   		syscall
+   		#Get a string from user
+		li $v0, 8        
+   		la $a0, input       
+   		move $t0, $a0
+   		li $a1, 20
+  		syscall
+   		la $t0, input        #address of string
+   		move $a0, $t0
+   		move $t0, $a0
+#Ask the user for input
+		la $a0, prompt    
+   		li $v0, 4
+   		syscall
+   		#Get a string from user
+		li $v0, 8        
+   		la $a0, input2       
+   		move $t3, $a1
+   		li $a1, 20
+  		syscall
+   		la $t3, input2        #address of string
+   		
+move $a0, $t0
+move $a1, $t3
+jal reverseString
+
+la $a0, input2
+li $v0, 4
+syscall
+
+j exit
+
+reverseString:
+	addi $sp, $sp,-8 # make room on stack
+	lb $t6, 0($a0)
+	sw $t6, 4($sp) #store first byte
+	sw $ra, 0($sp) # store $ra
+	addi $t0, $0, 10 # $t0 = 10
+	beq $t6, $t0, return
+	add $a0, $a0, 1 #update address beginning
+	jal reverseString
+return:
+	lw $ra, 0($sp)
+	lw $t6, 4($sp) #restore first byte
+	sb $t6, 0($a1)
+	addi $sp, $sp, 8
+	add $a1, $a1, 1 #update address beginning
+    	jr $ra
+	
+exit:
+
+duplicateListIterative:
+	move $s0, $a0	# original list pointer
+	move $s2, $s0  #current pointer on original list
+	bne $s0, $zero, devam50 #if n = 0, finish up and leave
+	la $a0, msg93	# put msg93 address into a0
+	li $v0,4	# system call to print
+	syscall		#   out the msg93 string
+	move $s0, $zero # the pointer to the 0-element list will be Null
+	
+devam50:
+	li $a0, 16	# get 16 bytes of heap from OS
+	li $v0, 9	# syscall for sbrk (dynamic memory allocation)
+	syscall
+	move $t1, $v0	# copied list pointer
+	move $t5, $v0	# current pointer on list being copied
+	j top50
+	
+top50:
+	lw $t4, 4($s2)  #get the value of element from original list
+	sw $t4, 4($t5)  #store the value of node in original list to copied list
+	sw $0, 0($t5)	# Put Null value into pointerToNext part of last element in copied list
+	lw $s1, 0($s2)	# read the value of pointerToNext
+	beq $s1, $zero, Return50 # if pointerToNext is NULL, there are no more elements 
+	move $s2, $s1	# update the current pointer, to point to the new element in original list
+	move $t6, $t5	# pointer to previous element is updated with pointer to current element
+	li $a0, 16	# get 16 bytes of heap from OS
+	li $v0, 9	# syscall for sbrk (dynamic memory allocation)
+	syscall
+	move $t5, $v0	# the pointer to the new current element in the list is put in $t5
+	sw $t5, 0($t6)	# the previous element's pointerToNext is loaded with the new element's address
+	j top50
+
+Return50:
+	move $v0, $t1
+	jr $ra
+
+duplicateListRecursive :
+	addi $sp, $sp,-12 # make room on stack
+	sw $s4, 4($sp) #original list ptr
+	sw $a1, 8($sp) #copied list ptr
+	sw $ra, 0($sp) # store $ra
+	#base case
+	lw $t7, 0($s4)
+	beq $t7, $zero, returnRec #if n = 0, finish up and leave
+	move $t6, $a1  # will be prev elements pointer
+	li $a0, 16	# get 16 bytes of heap from OS
+	li $v0, 9	# syscall for sbrk (dynamic memory allocation)
+	syscall
+	move $a1, $v0	# copied list pointer
+	sw $a1, 0($t6)	# Put prev value into pointerToNext part of last element in copied list
+	lw $s1, 0($s4)	# read the value of pointerToNext
+	move $s2, $s1	# update the current pointer, to point to the new element in original list
+	#sw $t6, 0($a1)	# the previous element's pointerToNext is loaded with the new element's address
+	move $s4, $s2
+	jal duplicateListRecursive
+	
+returnRec:
+	lw $s4, 4($sp) #original list ptr
+	lw $a1, 8($sp)
+	lw $ra, 0($sp) # restore $ra
+	addi $sp, $sp,12 # restore
+	lw $t4, 4($s4)  #get the value of element from original list
+	sw $t4, 4($a1)  #store the value of node in original list to copied list
+	jr $ra
+
+Insert_n:
+	move $s0, $a0	# put the pointer to the current element in $s0
+	move $t0, $a2  #put the index to be inserted in $t0
+	move $t3, $a1 #the value of new node
+	addi $t2, $0, 2 #counter to find index n
+	beq , $t0, 1, head #if n is 1, insert the node to first 	
+	lw $s1, ($s0)	# read the value of pointerToNext
+devam60:
+	addi $sp, $sp,-4 # make room on stack for 2 new items
+	sw $s0, 0 ($sp) # push $s0 value onto stack
+	beq $t0, $t2, top60
+	move $t8, $s0
+	move $s0, $s1	# update the current pointer, to point to the new element
+	lw $s1, ($s0)	# read the value of pointerToNext in current element
+	beq $s1, $zero, last
+	addi $t2, $t2, 1 #counter to find index n
+	j devam60
+
+top60:
+	move $s2, $s0	# pointer to previous element is updated with pointer to current element
+	li $a0, 16	# get 16 bytes of heap from OS
+	li $v0, 9	# syscall for sbrk (dynamic memory allocation)
+	syscall
+	move $s0, $v0	# the pointer to the new current element in the list is put in $s1
+	sw $s1, 0($s0)	# the previous element's pointerToNext is loaded with the new element's address
+	sw $s0, 0($s2)
+	sw $t3, 4($s0)
+	lw $s0, 0 ($sp) # restore $s1 value from stack
+	addi $sp, $sp, 4 # restore $sp to original value (i.e. pop 2 items)
+	j Return60
+
+last:
+	move $s2, $s0	# pointer to previous element is updated with pointer to current element
+	sll $t2,$t0,4	# $t2 is 16 x the number of the current element ($t0)
+	move $a0, $t2	# get $t2 bytes of heap from OS
+	li $v0, 9	# syscall for sbrk (dynamic memory allocation)
+	syscall
+	move $s1, $v0	# the pointer to the new current element in the list is put in $s1
+	sw $s1, 0($s0)	# the previous element's pointerToNext is loaded with the new element's address
+	sw $t3, 4($s1)
+	lw $s0, 0 ($sp) # restore $s1 value from stack
+	addi $sp, $sp, 4 # restore $sp to original value (i.e. pop 2 items)
+	j Return60
+
+head:
+	li $a0, 16	# get 16 bytes of heap from OS
+	li $v0, 9	# syscall for sbrk (dynamic memory allocation)
+	syscall
+	move $s1, $s0	# the pointer to the old head node
+	move $s0, $v0	# the final value of head is put in $s0
+	move $t8, $s0
+	sw $t3, 4($s0) 	# store the value from user into
+			# current element's value part
+	sw $s1, 0($s0)	# the previous element's pointerToNext is loaded with the new element's address
+	j Return60
+
+Return60:
+	move $v1, $t8
+	jr $ra

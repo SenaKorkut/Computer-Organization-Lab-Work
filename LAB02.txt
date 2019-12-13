@@ -1,0 +1,418 @@
+.data
+	prompt: .asciiz "Enter array size:"
+	prompt2: .asciiz "Enter an integer:"
+	menu1: .asciiz "1)Create array (Do not enter other choices before creating an array):" 
+	menu2: .asciiz "2)Sort the array in descending order (Negative integers will be turned into its abs value):"
+	menu3: .asciiz "3)Find the mode value of array:"
+	menu4: .asciiz "4)Print the array"
+	menu5: .asciiz "5)Find third min and third max of the array."
+	menu6: .asciiz "6)Quit."
+	choice: .asciiz "Enter a choice:"
+	line: .asciiz "\n"
+.text
+     monitor:
+     	#print the menu
+	li $v0, 4
+	la $a0, menu1
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu2
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu3
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu4
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu5
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu6
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, choice
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t1, $v0 # $t1 = first pick
+	beq $t1, 1, jreadArray
+	beq $t1, 2, jbubbleSort
+	beq $t1, 3, jmode
+	beq $t1, 4, jprint
+	beq $t1, 5, jthirdMinThirdMax
+	beq $t1, 6, endMonitor
+		menuLoop:
+			#print the menu
+			li $v0, 4
+			la $a0, menu1
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu2
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu3
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu4
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu5
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu6
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, choice
+			syscall
+     			#Get an integer from keyboard
+			li $v0, 5 
+			syscall
+			#Store the result
+			move $t1, $v0 # $t1 = choice
+			#Store the result
+			move $t1, $v0 # $t1 = first pick
+			beq $t1, 1, jreadArray
+			beq $t1, 2, jbubbleSort
+			beq $t1, 3, jmode
+			beq $t1, 4, jprint
+			beq $t1, 5, jthirdMinThirdMax
+			beq $t1, 6, endMonitor
+			j loop2
+	# array size will be $s6
+	# array address will be $s5
+	jreadArray:
+	jal readArray
+	#in heap
+     	move $s7, $v0 #address of beginning of array
+     	move $s6, $v1 #size of array 
+     	
+     	move $a0, $s7 #address
+     	move $a1, $s6 #size
+     	jal copy
+     	move $s7, $v0
+     	move $s6, $v1
+     	
+     	lui $s0, 0x1001	#$s0 = 
+        ori $s0, $s0, 0x0140	#$s0 = 
+     	move $a0, $s0 #address
+     	move $a1, $s6 #size of array 
+     	jal bubbleSort
+     	move $s0, $v0 #address of array
+     	move $s6, $v1 #array size
+     	j menuLoop
+     	
+     	jbubbleSort:
+     	#parameters of bubble sort
+     	move $a1, $s6 #size of array
+     	move $a0, $s7 #address of beginning of array
+     	jal bubbleSortabs
+     	move $s7, $v0 #address of beginning
+     	move $s6, $v1 #size
+     	j menuLoop
+     	
+     	jmode:
+     	lui $s0, 0x1001	#$s0 = 
+        ori $s0, $s0, 0x0140	#$s0 = 
+     	move $a0, $s0 #address
+     	move $a1, $s6 #size of array
+     	jal bubbleSort
+     	move $s6, $v1 #size
+     	#parameters
+     	move $a0, $s7 #address
+     	move $a1, $s6 #size
+     	jal mode
+     	move $s7, $v1 #address
+     	move $t6, $v0
+     	move $a0, $t6 
+     	li $v0, 1
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+     	j menuLoop
+     	
+     	jthirdMinThirdMax:
+     	lui $s0, 0x1001	
+        ori $s0, $s0, 0x0140	 
+      	move $a0, $s0
+      	move $a1, $s6
+      	jal bubbleSort
+      	move $s7, $v0
+      	move $s6, $v1
+      	
+      	
+      	move $a0, $s6
+      	move $a1, $s0
+      	jal thirdMinThirdMax
+      	move $t6, $v0 #min
+      	move $t7, $v1 #max
+      	li $v0, 4
+	la $a0, line
+	syscall
+      	add $a0, $t6, 0
+     	li $v0, 1
+	syscall
+	add $a0, $t7, 0
+     	li $v0, 1
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	
+      	j menuLoop
+     		
+     	
+     	jprint:
+     	move $a0, $s6 # size of array
+     	move $a1, $s7 # address beginning of array
+     	jal print
+     	move $s6, $v0 #size
+     	move $s7, $v1 #address
+     	j menuLoop
+	
+     	readArray:
+		#Ask the user for array size
+		li $v0, 4
+		la $a0, prompt
+		syscall
+		#Get an integer from keyboard
+		li $v0, 5 
+		syscall
+		#Store the result
+		move $t0, $v0 # $t0 = array size
+		add $a0, $0, $t0#allocate enough space for integers
+		li $v0, 9
+		syscall
+		move $t1, $v0 #store beginning address of array
+		#Create the array
+		addi $s1, $0, 0 # $s1 = i = 0
+     		loop:
+     			slt $t2, $s1, $t0 # is i < array size ?
+     			beq $t2, $0, exit # if not, exit
+     			#Prompts to enter an integer
+     			la $a0, prompt2 
+     			li $v0, 4
+			syscall
+			#Read integer from keyboard
+			li $v0, 5 
+			syscall
+			sll $t2, $s1, 2 # $t2 = i*4
+			add $t3, $t1, $t2 # next address 
+			sw $v0, 0($t3) #store the value given 
+     			addi $s1, $s1, 1 #i++
+     			j loop #repeat the loop
+     		exit: 
+     		move $v0, $t1 #array address
+     		move $v1, $t0 # array size
+     		jr $ra
+     	
+     	bubbleSortabs:
+     		move $t0, $a0 #address of array $t0
+     		move $t1, $a1 #array size 
+		addi $s1, $0, 0 # $s1 = i = 0
+     			loop2abs:
+     			slt $t2, $s1, $t1 # is i < array size ?
+     			beq $t2, $0, exit2abs # if not, exit
+     			addi $s2, $0, 0 #$s2 = j = 0
+     			add, $s3, $t1, -1 #constraint of j 
+     			sub $s3, $s3, $s1 #constraint of j 
+     			j loop21abs
+     				loop21abs: 
+     				slt $t4, $s2, $s3 # is j < array size-1-i ?
+     				beq $t4, $0, exit21abs # if not, exit
+     				sll $t4, $s2, 2 # $t4 = j*4
+     				add $t5, $t0, $t4 # $t5 = next address arr[j]
+     				add $t4, $t4, 4 # $t4 = j*4
+     				add $t6, $t0, $t4 # $t5 = next address arr[j+1]
+     				addi $s2, $s2, 1 #j++
+     				lw $t7, 0($t5) # load the value at address $t5
+     				lw $t8, 0($t6) # load the value at address $t6
+     				abs $s4, $t7 #taking absolute value of t7
+     				abs $s5, $t8 #taking absolute value of t8
+     				bgt $s4, $s5, loop21abs # if j is less then j+1, turn loop
+     				sw $t8, 0($t5) #store the value 
+     				sw $t7, 0($t6) #store the value 
+     				j loop21abs
+     				exit21abs:		
+     				addi $s1, $s1, 1 #i++
+     				j loop2abs
+     			exit2abs:
+     				move $v0, $t0 #address of array
+     				move $v1, $t1 #array size
+     				jr $ra
+     		
+     	bubbleSort:
+     		move $t0, $a0 #address of array $t0
+     		move $t1, $a1 #array size 
+		addi $s1, $0, 0 # $s1 = i = 0
+     			loop2:
+     			slt $t2, $s1, $t1 # is i < array size ?
+     			beq $t2, $0, exit2 # if not, exit
+     			addi $s2, $0, 0 #$s2 = j = 0
+     			add, $s3, $t1, -1 #constraint of j 
+     			sub $s3, $s3, $s1 #constraint of j 
+     			j loop21
+     				loop21: 
+     				slt $t4, $s2, $s3 # is j < array size-1-i ?
+     				beq $t4, $0, exit21 # if not, exit
+     				sll $t4, $s2, 2 # $t4 = j*4
+     				add $t5, $t0, $t4 # $t5 = next address arr[j]
+     				add $t4, $t4, 4 # $t4 = j*4
+     				add $t6, $t0, $t4 # $t5 = next address arr[j+1]
+     				addi $s2, $s2, 1 #j++
+     				lw $t7, 0($t5) # load the value at address $t5
+     				lw $t8, 0($t6) # load the value at address $t6
+     				bgt $t7, $t8, loop21 # if j is less then j+1, turn loop
+     				sw $t8, 0($t5) #store the value 
+     				sw $t7, 0($t6) #store the value 
+     				j loop21
+     				exit21:		
+     				addi $s1, $s1, 1 #i++
+     				j loop2
+     			exit2:
+     				move $v0, $t0 #address of array
+     				move $v1, $t1 #array size
+     				jr $ra
+     	print:
+     		move $t0, $a0 # t0 = array size
+     		move $t1, $a1 # address of array
+     		add $s1, $0,$0
+     		printloop:
+     			slt $t2, $s1, $t0 # is i < array size ?
+     			beq $t2, $0, printexit # if not, exit
+     			sll $t2, $s1, 2 # $t1 = i*4
+			add $t8, $t1, $t2 # next address 
+			lw $a0, 0($t8) #store the value given 
+     			li $v0, 1
+			syscall
+     			addi $s1, $s1, 1 #i++
+     			j printloop #repeat the loop
+     		printexit: 
+		li $v0, 4
+		la $a0, line
+		syscall
+		move $v0, $t0 #array size
+		move $v1, $t1 #array address
+     		jr $ra
+     		
+     	mode:
+     		move $t0, $a0 # address t0
+     		move $t1, $a1 # size t1
+     		add $t2, $0, 1 #count 
+     		add $s0, $0, 1 # count mode
+     		add $t5, $t0, 0 #address to be changed
+     		lw $t3, 0($t5) #mode at first
+     		lw $t7, 0($t5) #array[0] = number
+     		add $s1, $0,1 # i = 1
+     		j modeloop
+     			modeloop:
+     				slt $t4, $s1, $t1 # is i < array size ?
+     				beq $t4, $0, modeloopexit # if not, exit
+     				sll $t4, $s1, 2 # $t1 = i*4
+				add $t5, $t0, $t4 # next address 
+				lw $t6, 0($t5) #store the value given 
+				beq $t6, $t7, equal
+				j else
+				equal:
+					add $t2, $t2, 1 #count++
+					j loopafter
+     				else: 
+     					add $t2, $0, 1 #reset count
+     					add $t7, $t6, 0 # number = array[i]
+     					j loopafter
+     				loopafter:
+     					bge $t2, $s0, if2
+     					j afterelse
+     					if2:
+     						add $s0, $t2, 0 #count mode = count
+     						add $t3, $t7, 0 # mode = number
+     						j afterelse
+     					afterelse:	
+					addi $s1, $s1, 1 #i++
+					j modeloop
+     				
+     			modeloopexit:	
+     				move $v0, $t3 
+     				move $v1, $t0
+     				jr $ra
+     				
+     	thirdMinThirdMax:
+     		move $t0, $a1 #address
+     		move $s0, $a0 #size
+     		#Storing last index address
+     		mul $s2, $s0, 4
+       		add $t3, $t0, $s2
+       		add $t3, $t3, -4
+     		#Storing first index address
+     		addi $t2, $t0, 0  # $t2 = first address
+     		add $t5, $t2, 8
+     		add $t6, $t3, -8
+     		lw $t7, 0($t5) # load the value at address $t5
+     		lw $t8, 0($t6) # load the value at address $t6
+     		move $v0, $t7 #min value
+     		move $v1, $t8 #max value
+     		jr $ra
+     						
+     	copy: 
+     	#Array base address
+        lui $s0, 0x1001	#$s0 = 
+        ori $s0, $s0, 0x0140	#$s0 = 
+        move $t5, $a0 #address
+        move $t0, $a1 #size
+	
+	#Create the array
+	addi $s1, $0, 0 # $s1 = i = 0
+     		loopcopy:
+     			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, exitcopy # if not, exit
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			add $t7, $t5, $t1 # next address of heap array
+			lw $t8, 0($t7) # load the value at address $t7
+			sw $t8, 0($t2) #store the value given 
+     			addi $s1, $s1, 1 #i++
+     			j loopcopy #repeat the loop
+     		exitcopy: 
+     			move $v0, $t5
+     			move $v1, $t0
+     			jr $ra
+	endMonitor:

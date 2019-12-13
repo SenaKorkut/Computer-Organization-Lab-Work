@@ -1,0 +1,567 @@
+.data
+	prompt: .asciiz "Enter array size:"
+	prompt2: .asciiz "Enter an integer:"
+	line: .asciiz "\t"
+.text
+     main:
+	#Ask the user for array size
+	li $v0, 4
+	la $a0, prompt
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t0, $v0 # $t0 = array size
+	
+	#Array base address
+        lui $s0, 0x1001	#$s0 = 
+        ori $s0, $s0, 0x0120	#$s0 = 
+	
+	#Create the array
+	addi $s1, $0, 0 # $s1 = i = 0
+     		loop:
+     			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, exit # if not, exit
+     			#Prompts to enter an integer
+     			la $a0, prompt2 
+     			li $v0, 4
+			syscall
+			#Read integer from keyboard
+			li $v0, 5 
+			syscall
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			sw $v0, 0($t2) #store the value given 
+     			addi $s1, $s1, 1 #i++
+     			j loop #repeat the loop
+     		exit: 
+     	
+     	jal displayArray
+     	#Storing last index address
+     	add $t3, $t2, $0
+     	#Storing first index address
+     	addi $t2, $s0, 0  # $t2 = first address
+     	add $s1, $0,$0 #i = 0 = $s1
+
+     	#Dividing array size to 2
+     	div $t4, $t0, 2
+     	
+     		loop3: 
+     			sltu $t1, $s1, $t4 # is i < array size / 2 ?
+     			beq $t1, $0, exit3 # if not, exit
+     			sll $t1, $s1, 2 # $t1 = i*4
+     			add $t5, $t2, $t1 # next address 
+     			sub $t6, $t3, $t1 #prev address of last index
+     			lw $t7, 0($t5) # load the value at address $t5
+     			lw $t8, 0($t6) # load the value at address $t6
+     			sw $t8, 0($t5) #store the value in first location
+     			sw $t7, 0($t6) #store the value in last location
+     			addi $s1, $s1, 1 #i++
+     			j loop3
+     		exit3:
+     		
+     	jal displayArray
+     	j done
+     	
+     	displayArray:
+     		add $s1, $0,$0
+     		loop2:
+     			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, exit2 # if not, exit
+     			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			lw $a0, 0($t2) #store the value given 
+     			li $v0, 1
+			syscall
+     			addi $s1, $s1, 1 #i++
+     			j loop2 #repeat the loop
+     		exit2: 
+		li $v0, 4
+		la $a0, line
+		syscall
+     		jr $ra
+    	done:
+
+
+.data
+	prompt: .asciiz "Enter array size"
+	prompt2: .asciiz "Enter an integer"
+	palindrome: .asciiz "Array is palindrome"
+	notpalindrome: .asciiz "Array is not palindrome"
+.text
+	#Ask the user for array size
+	li $v0, 4
+	la $a0, prompt
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t0, $v0 # $t0 = array size
+	
+	#Array base address
+        lui $s0, 0x1001	#$s0 = 
+        ori $s0, $s0, 0x0120	#$s0 = 
+	
+	#Create the array
+	addi $s1, $0, 0 # $s1 = i = 0
+     		loop:
+     			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, exit # if not, exit
+     			#Prompts to enter an integer
+     			la $a0, prompt2 
+     			li $v0, 4
+			syscall
+			#Read integer from keyboard
+			li $v0, 5 
+			syscall
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			sw $v0, 0($t2) #store the value given 
+     			addi $s1, $s1, 1 #i++
+     			j loop #repeat the loop
+     		exit:
+     	
+     #For getting reverse of it
+     	
+     	#Storing last index address
+     	add $t3, $t2, $0
+     	#Storing first index address
+     	addi $t2, $s0, 0  # $t2 = first address
+     	add $s1, $0,$0 #i = 0 = $s1
+
+     	#Dividing array size to 2
+     	div $t4, $t0, 2
+     	
+     		loop2: 
+     			sltu $t1, $s1, $t4 # is i < array size / 2 ?
+     			beq $t1, $0, exit2 # if not, exit
+     			sll $t1, $s1, 2 # $t1 = i*4
+     			add $t5, $t2, $t1 # next address 
+     			sub $t6, $t3, $t1 #prev address of last index
+     			lw $t7, 0($t5) # load the value at address $t5
+     			lw $t8, 0($t6) # load the value at address $t6
+     			
+     			bne $t7, $t8, false #if first and last value are not equal, go to false
+     			addi $s1, $s1, 1 #i++
+     			j loop2
+     		exit2:
+     		
+     		true:
+     			# Print the case
+     			li $v0, 4
+			la $a0, palindrome
+			syscall
+			# End program
+			j done
+     		false:
+     			# Print the case
+			li $v0, 4
+			la $a0, notpalindrome
+			syscall
+			# End program
+			j done
+     		
+     	
+     	
+     	j done
+     	done:
+
+.data
+	prompt: .asciiz "Enter an integer:"
+	answer1: .asciiz "The division is:"
+	answer2: .asciiz "The remainder is:"
+	line: .asciiz "\n"
+.text
+
+	main:
+	#Ask the user for integer
+	li $v0, 4
+	la $a0, prompt
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t0, $v0 # $t0 = number 1
+	#Ask the user for another integer
+	li $v0, 4
+	la $a0, prompt
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t1, $v0 # $t1 = number 2
+	
+	add $t2, $t0, $0 # $t2 = remainder = number 1 at first
+	add $t3, $0, $0 # $t3 = division = i
+	while:
+		blt  $t2, $t1, exit #exit loop if number 1 is less than number 2
+		sub $t2, $t2, $t1 #subtract number 2 from number 1 or remainder
+		addi $t3, $t3, 1 #i++ or division++
+		j while
+	exit:
+	#Print division
+	li $v0, 4
+	la $a0, answer1
+	syscall
+	la $a0, ($t3)
+	li $v0, 1
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	#Print remainder
+	li $v0, 4
+	la $a0, answer2
+	syscall
+	la $a0, ($t2)
+	li $v0, 1
+	syscall
+	j done
+	done:
+
+	.text		
+.globl __start
+ 
+__start:		# execution starts here
+	li $a0,9	# to calculate fib(7)
+	rem $t0, $a0, 2 #to find if it is even or odd
+	addi $s1, $0, 1 #assign 1 to s1
+	beq $t0, 0, fac #if it is even, branch factorial
+	jal fib		# call fib
+	move $a0,$v0	# print result
+	li $v0, 1
+	syscall
+	
+	j exit
+#------------------------------------------------
+
+fac:    
+	ble $a0,1,resultfac
+	mul $s1,$s1,$a0 
+	subi $a0,$a0,1 
+	j fac
+
+fib:	move $v0,$a0	# initialise last element
+	blt $a0,2,done	# fib(0)=0, fib(1)=1
+	li $t0,0	# second last element
+	li $v0,1	# last element
+
+loop:	add $t1,$t0,$v0	# get next value
+	move $t0,$v0	# update second last
+	move $v0,$t1	# update last element
+	sub $a0,$a0,1	# decrement count
+	bgt $a0,1,loop	# exit loop when count=0
+done:	jr $ra
+
+
+resultfac: 
+	move $a0, $s1	# print result
+	li $v0, 1
+	syscall
+	la $a0,endl	# print newline
+	li $v0,4
+	syscall
+	j exit
+exit:
+#################################
+#					 	#
+#     	 data segment		#
+#						#
+#################################
+
+	.data
+		prompt: .asciiz "eyo"
+endl:	.asciiz "\n"
+
+
+.data
+	valA: .asciiz "Enter A:"
+	valB: .asciiz "Enter B:"
+	valC: .asciiz "Enter C:"
+	valD: .asciiz "Enter D:"
+	valE: .asciiz "Enter E:"
+.text
+
+#2A*(B-C)+D  mod E
+
+	# $t0 = A, $t1 = B, $t2= C, $t3=D, $t4 = E
+	li $v0, 4
+	la $a0, valA
+	syscall
+	li $v0, 5 
+	syscall
+	move $t0, $v0
+	
+	li $v0, 4
+	la $a0, valB
+	syscall
+	li $v0, 5 
+	syscall
+	move $t1, $v0
+	
+	li $v0, 4
+	la $a0, valC
+	syscall
+	li $v0, 5 
+	syscall
+	move $t2, $v0
+	
+	li $v0, 4
+	la $a0, valD
+	syscall
+	li $v0, 5 
+	syscall
+	move $t3, $v0
+	
+	li $v0, 4
+	la $a0, valE
+	syscall
+	li $v0, 5 
+	syscall
+	move $t4, $v0
+	
+	sub $t5, $t1, $t2 # $t5 = B-C
+	mul $t6, $t0, 2 # $t6 = 2A 
+	mul $t7, $t5, $t6 # $t7 = 2A*(B-C)
+	add $t8, $t7, $t3 # $t8 = [ 2A*(B-C) ]+D
+	rem $t9, $t8, $t4
+	
+	#Print answer
+	move $a0, $t9
+     	li $v0, 1
+     	syscall
+
+.data
+	prompt: .asciiz "Enter array size:"
+	prompt2: .asciiz "Enter an integer:"
+	menu1: .asciiz "1)Find summation of numbers stored in the array which is less than an input number."
+	menu2: .asciiz "2)Find summation of numbers out of a value range specified by two numbers and display that value"
+	menu3: .asciiz "3)Display the number of occurrences of the array elements divisible by a certain input number."
+	menu4: .asciiz "4)Quit."
+	lower: .asciiz "Enter lower bound"
+	upper: .asciiz "Enter upper bound"
+	number: .asciiz "Enter a number:"
+	choice: .asciiz "Enter a choice:"
+	line: .asciiz "\n"
+
+.text
+main:
+	#Ask the user for array size
+	li $v0, 4
+	la $a0, prompt
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t0, $v0 # $t0 = array size
+	
+	#Array base address
+        lui $s0, 0x1001	#$s0 = 
+        ori $s0, $s0, 0x0120	#$s0 = 
+	
+	#Create the array
+	addi $s1, $0, 0 # $s1 = i = 0
+     	loop:
+     			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, exit # if not, exit
+     			#Prompts to enter an integer
+     			la $a0, prompt2 
+     			li $v0, 4
+			syscall
+			#Read integer from keyboard
+			li $v0, 5 
+			syscall
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			sw $v0, 0($t2) #store the value given 
+     			addi $s1, $s1, 1 #i++
+     			j loop #repeat the loop
+     	exit: 
+     	#print the menu
+	li $v0, 4
+	la $a0, menu1
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu2
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu3
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, menu4
+	syscall
+	li $v0, 4
+	la $a0, line
+	syscall
+	li $v0, 4
+	la $a0, choice
+	syscall
+     	
+     	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t1, $v0 # $t1 = first pick
+	bne $t1, 4, loop2
+	j endprogram
+     			loop2: 
+     			beq $t1, 1, first
+			beq $t1, 2, second
+			beq $t1, 3, third
+			beq $t1, 4, endprogram
+     			#print the menu
+     			li $v0, 4
+			la $a0, menu1
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu2
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu3
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+			li $v0, 4
+			la $a0, menu4
+			syscall
+			li $v0, 4
+			la $a0, line
+			syscall
+     			li $v0, 4
+			la $a0, choice
+			syscall
+     			#Get an integer from keyboard
+			li $v0, 5 
+			syscall
+			#Store the result
+			move $t1, $v0 # $t1 = choice
+			j loop2
+		
+		first:
+			li $v0, 4
+			la $a0, number
+			syscall
+			#Get an integer from keyboard
+			li $v0, 5 
+			syscall
+			#Store the result
+			move $t3, $v0 # $t2 = number which will be greater than elements
+			add $t4, $0, 0 #$t4 = summation
+			add $s1, $0, 0 #i=0
+			loop3:
+     			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, print1 # if not, print result
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			lw $s2, 0($t2)
+			addi $s1, $s1, 1 #i++
+			bge  $s2, $t3, loop3 # t3 = 1 if number is less than t2
+			add $t4, $s2, $t4 #update sum
+     			j loop3 #repeat the loop
+     	
+     			print1: 
+     			move $a0, $t4
+     			li $v0, 1
+     			syscall
+     			li $v0, 4
+			la $a0, line
+			syscall
+     			j loop2
+     			
+		
+		
+		second:
+			li $v0, 4
+			la $a0, lower
+			syscall
+			#Get an integer from keyboard
+			li $v0, 5 
+			syscall
+			move $t5, $v0 # $t5 = lower bound
+			li $v0, 4
+			la $a0, upper
+			syscall
+			#Get an integer from keyboard
+			li $v0, 5 
+			syscall
+			move $t3, $v0 # $t3 = upper bound
+			add $s1, $0, 0 #i=0
+			add $s3, $0, 0 #increment
+			loop5:
+			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, print5 # if not, exit
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			lw $s2, 0($t2)
+			slt $t4, $s2, $t5 #chek bounds lower
+			sgt $t7, $s2, $t3 #check bounds upper
+			or $t8, $t4, $t7
+			addi $s1, $s1, 1 #i++
+			beq $t8, 1, inc
+			j loop5
+			inc:
+			add $s3, $s3, $s2
+     			j loop5 #repeat the loop
+			print5:
+			move $a0, $s3
+     			li $v0, 1
+     			syscall
+     			li $v0, 4
+			la $a0, line
+			syscall
+     			j loop2
+		
+		
+		third:
+			#Ask the user for divider
+			li $v0, 4
+			la $a0, number
+			syscall
+			#Get an integer from keyboard
+			li $v0, 5 
+			syscall
+			move $t3, $v0 # $t3 = number which will be divider
+			add $s1, $0, 0 #i=0
+			add $s3, $0, 0 #s3 = occurences = 0
+			loop4:
+			slt $t1, $s1, $t0 # is i < array size ?
+     			beq $t1, $0, print4 # if not, exit
+			sll $t1, $s1, 2 # $t1 = i*4
+			add $t2, $s0, $t1 # next address 
+			lw $s2, 0($t2)
+			rem $t5, $s2, $t3 
+			addi $s1, $s1, 1 #i++
+			bne $t5, 0, loop4 #if not divisible repeat 
+			add $s3, $s3, 1 #increment
+     			j loop4 #repeat the loop
+			print4:
+			move $a0, $s3
+     			li $v0, 1
+     			syscall
+     			li $v0, 4
+			la $a0, line
+			syscall
+     			j loop2
+	
+	endprogram:
