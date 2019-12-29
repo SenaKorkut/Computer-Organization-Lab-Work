@@ -1,0 +1,234 @@
+.data
+msgOption:.asciiz   	"\n Choose an option: "
+choice1: .asciiz	"\n  1. Matrix size in terms of its dimensions (N), array will be allocated"
+choice2: .asciiz	"\n  2. Matrix element to be accessed"
+choice3: .asciiz    	"\n  3. Obtain summation of matrix elements row-major (row by row) summation"
+choice4: .asciiz    	"\n  4. Obtain summation of matrix elements column-major (column by column) summation"
+choice5: .asciiz    	"\n  5. Display desired elements of the matrix by specifying its row member"
+choice6: .asciiz    	"\n  6. Display desired elements of the matrix by specifying its column member"
+choice7: .asciiz 	"\n  7. Exit"
+enter: 	 .asciiz 	"\n Enter value:" 
+row: .asciiz 		"\n Enter row:" 
+column: .asciiz 	"\n Enter column:"
+sum: .asciiz 		"\n Sum of elements obtained:" 
+line: .asciiz 		"\n"
+space: .asciiz 		" "
+
+.text
+main: 
+	menu:
+	#print the menu
+	li $v0, 4
+	la $a0, choice1
+	syscall
+	li $v0, 4
+	la $a0, choice2
+	syscall
+	li $v0, 4
+	la $a0, choice3
+	syscall
+	li $v0, 4
+	la $a0, choice4
+	syscall
+	li $v0, 4
+	la $a0, choice5
+	syscall
+	li $v0, 4
+	la $a0, choice6
+	syscall
+	li $v0, 4
+	la $a0, choice7
+	syscall
+	li $v0, 4
+	la $a0, enter
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	#Store the result
+	move $t1, $v0 # $t1 = pick
+	beq $t1, 1, ch1
+	beq $t1, 2, ch2
+	beq $t1, 3, ch3
+	beq $t1, 4, ch4
+	beq $t1, 5, ch5
+	beq $t1, 6, ch6
+	beq $t1, 6, endMenu
+	
+	ch1:
+	#Ask for input
+	li $v0, 4
+	la $a0, enter
+	syscall
+	#Get N
+	li $v0, 5 
+	syscall
+	move $s0, $v0 # $s0 = size of matrix = N
+	mul $s1, $s0, $s0 # $s1 = number of elements
+	# Allocate 
+	sll $a0, $s1, 2 # for bytes
+	li $v0, 9 
+	syscall 
+	move $s2, $v0 #Store location 
+	
+	#Load the matrix
+	addi $t0, $0,1 #Starting value = $t0
+	move $t1, $s2 #move starting address $t1
+	fill:	
+		sw $t0, 0($t1) # write to the array
+		addi $t0, $t0, 1 #update the value
+		addi $t1, $t1, 4 # find next element location
+		ble $t0, $s1, fill
+	j menu
+	
+	ch2:
+	#Ask for row and column 
+	li $v0, 4
+	la $a0, row
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	move $t0, $v0 # get row $t0
+	#Ask for row and column 
+	li $v0, 4
+	la $a0, column
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	move $t1, $v0 # get column $t1
+	
+	#find its place		N = $s0,  i = $t0,  j = $t1	location of beginning = $s2
+	mul $t3, $s0, 4
+	sub $t5, $t1, 1
+	mul $t4, $t3, $t5 #first part of calculation
+	sub $t6, $t0, 1
+	mul $t7, $t6, 4 #second part of calculation
+	add $s3, $t7, $t4 
+	add $s3, $s2, $s3 # get the location 
+	lw $a0, 0($s3) #load the value at the location
+     	li $v0, 1
+	syscall
+	j menu
+	
+	ch3:	#row major
+	#prompt
+	li $v0, 4
+	la $a0, sum
+	syscall
+	
+	addi $t1, $0, 1 # j = 1
+	addi $s5, $0, 0 #sum = 0
+	loopSum1row:
+		addi $t0, $0, 1 # i = 1
+		loopSum2row:	
+			mul $t3, $s0, 4
+			sub $t5, $t1, 1
+			mul $t4, $t3, $t5 #first part of calculation
+			sub $t6, $t0, 1
+			mul $t7, $t6, 4 #second part of calculation
+			add $s3, $t7, $t4 
+			add $s3, $s2, $s3 # get the location 
+			lw $t8, 0($s3) #load the value at the location	
+			add $s5, $s5, $t8 #update sum
+			add $t0, $t0, 1 #update i
+			ble $t0, $s0, loopSum2row
+	add $t1, $t1, 1 #update j
+	ble $t1, $s0, loopSum1row
+	#print sum
+	move $a0, $s5
+     	li $v0, 1
+	syscall
+	j menu
+	
+	ch4:	#column major
+	#prompt
+	li $v0, 4
+	la $a0, sum
+	syscall
+	addi $t0, $0, 1 # i = 1
+	
+	addi $s5, $0, 0 #sum = 0
+	loopSum1col:	
+		addi $t1, $0, 1 # j = 1
+		loopSum2col:	
+			mul $t3, $s0, 4
+			sub $t5, $t1, 1
+			mul $t4, $t3, $t5 #first part of calculation
+			sub $t6, $t0, 1
+			mul $t7, $t6, 4 #second part of calculation
+			add $s3, $t7, $t4 
+			add $s3, $s2, $s3 # get the location 
+			lw $t8, 0($s3) #load the value at the location	
+			add $s5, $s5, $t8 #update sum
+			add $t1, $t1, 1 #update j
+			ble $t1, $s0, loopSum2col
+	add $t0, $t0, 1 #update i
+	ble $t0, $s0, loopSum1col
+	#print sum
+	move $a0, $s5
+     	li $v0, 1
+	syscall
+	j menu
+	
+	ch5:
+	#Ask for row and column 
+	li $v0, 4
+	la $a0, row
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	move $t0, $v0 # get row $t01
+	addi $t1, $0, 1 # j = 1
+		loopRow:	
+			mul $t3, $s0, 4
+			sub $t5, $t1, 1
+			mul $t4, $t3, $t5 #first part of calculation
+			sub $t6, $t0, 1
+			mul $t7, $t6, 4 #second part of calculation
+			add $s3, $t7, $t4 
+			add $s3, $s2, $s3 # get the location 
+			lw $t8, 0($s3) #load the value at the location	
+			move $a0, $t8
+			li $v0, 1
+			syscall
+			la $a0, space
+			li $v0, 4
+			syscall
+			add $t1, $t1, 1 #update j
+			ble $t1, $s0, loopRow
+	j menu
+	
+	ch6:
+	#Ask for row and column 
+	li $v0, 4
+	la $a0, column
+	syscall
+	#Get an integer from keyboard
+	li $v0, 5 
+	syscall
+	move $t1, $v0 # get column $t1
+	addi $t0, $0, 1 # i = 1
+		loopColumn:	
+			mul $t3, $s0, 4
+			sub $t5, $t1, 1
+			mul $t4, $t3, $t5 #first part of calculation
+			sub $t6, $t0, 1
+			mul $t7, $t6, 4 #second part of calculation
+			add $s3, $t7, $t4 
+			add $s3, $s2, $s3 # get the location 
+			lw $t8, 0($s3) #load the value at the location	
+			move $a0, $t8
+			li $v0, 1
+			syscall
+			la $a0, space
+			li $v0, 4
+			syscall
+			add $t0, $t0, 1 #update i
+			ble $t0, $s0, loopColumn
+	
+	j menu
+	
+	endMenu:
