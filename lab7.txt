@@ -1,0 +1,88 @@
+// This code shows and rotates the pattern (10001000) right or stops based on theinput coming from the user. The pattern is to be shown on the LEDs.
+int stop = 0;
+int left = 0; //To determine rotation direction
+int initial = 0b01110111; //Initial pattern. Note that 0 means on, while 1 means off.
+int right = 1; //To determine rotation direction
+int temp = 0b11111111;
+void main(){
+     TRISD = 0x0; // All bits of PORTD are output. ~0 means output~
+     // Three bits of PORTA are inputs but only one of them is used in this example as astop button, others are redundant. ~1 means input~
+     TRISA = 0b111;
+     // From PORTD, outputs will be sent to LEDs. Make sure that you physically connectedthem by looking at the Figure 1, in the directives document.
+     // Initial pattern is sent to the LEDs through PORTD.
+     PORTD = initial;
+     while(1){
+              int lsb;
+              int msb;
+              int mask;
+              // Stop button is the push-button which is labeled as 1 on the board.
+              if(PORTABits.RA1 == 0){ // If stop button clicked
+                               stop = !stop;
+                               
+                               if(!stop){
+                                         // If process restarted, copy initial pattern into PORTD.
+                                         PORTD = temp;      //put temp value to Port when stop is 0
+                               }
+                               else
+                                   temp = PORTD;      //Put Port Value to temp
+              }
+              if (PORTABits.RA7 == 0 && !stop) {    //For Change direction
+                 left = !left;                  // Change bool value left to its opposite
+                 right = !right;
+              }
+                   //Rotate left
+             if( left && !stop) {
+                msb = PORTD & 0x80;   //get the most significant bit
+                mask = msb >> 7;	//shift to get 1 bit
+                PORTD = (PORTD << 1 ) | mask; //put the msb to shifted portd 
+             }
+             else if( !left && !stop ){
+             //Rotate right
+              lsb = PORTD & 0x1; // Extract least significant bit
+              mask = lsb << 7; // Least significant bit will be the msb of theshifted pattern
+              PORTD = (PORTD >> 1) | mask; // Paste lsb to the leftmost bit theright shifted portd
+              }
+
+               else {
+                //Do not shift anything, that is, stop.
+                PORTD = 0b11111111;
+              }
+              delay_ms(1000); // Wait 1 second.
+     }
+}
+// Rotation ends here
+
+
+//an array for keeping the corresponding hex numbers of each digit
+unsigned char const Segment_arr[10] =  {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
+int number = 1;
+int cube = 1;
+void main() {
+     TRISD = 0x0; // PORTD input outputs (every bit is output)
+     TRISE = 0x0; // PORTD input outputs (every bit is output)
+     PORTD = 0x3F;  //initial 
+     PORTE = 0b00001000; //initial
+     while(1){
+     int i;
+     int counter = 0;
+     int digit;
+     if(number> 21){ //loop back if number is greater than 21
+        number = 1;
+     }
+     else{
+          while ( counter < 500 ) {
+               PORTE = 0b00001000; //initially pick the leftmost segment
+               cube = number*number*number;
+               for(i = 0; i <4 ; i++) { //Find each digit of number and display it
+                    digit = cube % 10;
+                    PORTD = Segment_arr[digit];  //initially show 0
+                    delay_ms(1);
+                    PORTE = PORTE / 2; //switch segments
+                    cube = cube / 10;
+               }
+               counter++;
+          }
+          number++; //update number
+          }
+     }
+     }
